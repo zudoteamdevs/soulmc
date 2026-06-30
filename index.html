@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Soul Client</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
 <link rel="shortcut icon" href="soul.png" type="image/x-icon">
 <style>
 :root{
@@ -69,23 +69,26 @@ a:focus-visible, button:focus-visible{
   display:none;
 }
 .countdown-banner.visible{display:block;}
+.countdown-banner.expired{background:var(--bolt);}
+.countdown-banner.expired .countdown-label{color:var(--paper);}
 .countdown-inner{
-  max-width:1180px;margin:0 auto;padding:10px 28px;
-  display:flex;align-items:center;justify-content:center;gap:14px;
-  flex-wrap:wrap;font-size:13px;text-align:center;
+  max-width:1180px;margin:0 auto;padding:14px 28px;
+  display:flex;align-items:center;justify-content:center;gap:18px;
+  flex-wrap:wrap;font-size:15px;text-align:center;
 }
 .countdown-label{
   text-transform:uppercase;letter-spacing:0.06em;font-weight:700;
-  color:var(--bolt);
+  color:var(--bolt);font-size:14px;
 }
-.countdown-units{display:flex;gap:10px;font-weight:700;}
-.countdown-unit{display:inline-flex;align-items:baseline;gap:4px;}
-.countdown-unit .num{font-size:15px;}
-.countdown-unit .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;}
-.countdown-date{color:var(--ink-soft);}
+.countdown-units{display:flex;gap:14px;font-weight:700;}
+.countdown-unit{display:inline-flex;align-items:baseline;gap:5px;}
+.countdown-unit .num{font-size:20px;}
+.countdown-unit .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;}
+.countdown-date{color:var(--ink-soft);font-size:13px;}
 @media (max-width:600px){
-  .countdown-inner{font-size:11.5px;padding:9px 16px;}
-  .countdown-units{gap:7px;}
+  .countdown-inner{font-size:13px;padding:10px 16px;}
+  .countdown-units{gap:8px;}
+  .countdown-unit .num{font-size:16px;}
 }
 .brand{display:flex;align-items:center;gap:12px;}
 .brand img{width:34px;height:34px;}
@@ -368,15 +371,13 @@ h2.section-title{
 /* ---------- devs ---------- */
 .devs{background:var(--paper);}
 .dev-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
-  border:3px solid var(--ink);
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
 }
 .dev-card{
-  padding:32px 24px;border-right:3px solid var(--ink);position:relative;
+  padding:32px 24px;border:3px solid var(--ink);position:relative;
   background:var(--paper);
   transition:background .15s ease, color .15s ease;
 }
-.dev-grid .dev-card:last-child{border-right:none;}
 .dev-card:hover{background:var(--ink);color:var(--paper);}
 .dev-role{
   font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:700;
@@ -419,15 +420,10 @@ footer{padding:40px 0;border-top:3px solid var(--ink);}
   .loader-row .loader-cell:last-child{border-bottom:none;}
   .dl-grid{grid-template-columns:1fr;}
   .dev-grid{grid-template-columns:1fr 1fr;}
-  .dev-grid .dev-card:nth-child(2n){border-right:none;}
-  .dev-grid .dev-card{border-bottom:3px solid var(--ink);}
-  .dev-grid .dev-card:nth-last-child(-n+2){border-bottom:none;}
   .navlinks{display:none;}
 }
 @media (max-width:520px){
   .dev-grid{grid-template-columns:1fr;}
-  .dev-grid .dev-card{border-right:none;border-bottom:3px solid var(--ink);}
-  .dev-grid .dev-card:last-child{border-bottom:none;}
   .hero-ctas{flex-direction:column;}
   .btn-primary,.btn-secondary{width:100%;justify-content:center;text-align:center;}
 }
@@ -451,6 +447,19 @@ footer{padding:40px 0;border-top:3px solid var(--ink);}
     <a href="#download" class="nav-cta">Get Soul</a>
   </div>
 </nav>
+
+<div class="countdown-banner" id="countdown-banner">
+  <div class="countdown-inner">
+    <span class="countdown-label">Next update in</span>
+    <span class="countdown-units" id="countdown-units">
+      <span class="countdown-unit"><span class="num" id="nu-days">--</span> <span class="lbl">days</span></span>
+      <span class="countdown-unit"><span class="num" id="nu-hours">--</span> <span class="lbl">hours</span></span>
+      <span class="countdown-unit"><span class="num" id="nu-mins">--</span> <span class="lbl">min</span></span>
+      <span class="countdown-unit"><span class="num" id="nu-secs">--</span> <span class="lbl">sec</span></span>
+    </span>
+    <span class="countdown-date" id="countdown-date"></span>
+  </div>
+</div>
 
 <header class="hero">
   <div class="wrap hero-inner">
@@ -670,13 +679,13 @@ footer{padding:40px 0;border-top:3px solid var(--ink);}
 
 <script>
   const firebaseConfig = {
-    apiKey: "AIzaSyDL2rXkXDUszy3jPaHJgwmWg_shQ0kB17Q",
-    authDomain: "zudo-launcher-62b4b.firebaseapp.com",
-    databaseURL: "https://zudo-launcher-62b4b-default-rtdb.firebaseio.com/",
-    projectId: "zudo-launcher-62b4b",
-    storageBucket: "zudo-launcher-62b4b.firebasestorage.app",
-    messagingSenderId: "775219630576",
-    appId: "1:775219630576:web:6d9321ec069c8530fd0d35"
+    apiKey: "AIzaSyDVq742GFVGqy65RQfhBJZd5GKq4RwBdjc",
+    authDomain: "soullauncher-99808.firebaseapp.com",
+    databaseURL: "https://soullauncher-99808-default-rtdb.firebaseio.com",
+    projectId: "soullauncher-99808",
+    storageBucket: "soullauncher-99808.firebasestorage.app",
+    messagingSenderId: "867556845947",
+    appId: "1:867556845947:web:55b7d96247ab0ae76d35de"
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
@@ -913,6 +922,54 @@ footer{padding:40px 0;border-top:3px solid var(--ink);}
   db.ref('team').on('value', snapshot => {
     const data = snapshot.val() || {};
     renderTeam(Object.values(data));
+  });
+
+  // ---- Next Update Countdown ----
+  let countdownTimer = null;
+  function getCountdownParts(targetAt) {
+    const totalMs = Math.max(0, (Number(targetAt) || 0) - Date.now());
+    const totalSeconds = Math.floor(totalMs / 1000);
+    return {
+      days: Math.floor(totalSeconds / 86400),
+      hours: Math.floor((totalSeconds % 86400) / 3600),
+      minutes: Math.floor((totalSeconds % 3600) / 60),
+      seconds: totalSeconds % 60
+    };
+  }
+  function formatScheduledDate(targetAt) {
+    const d = new Date(targetAt);
+    const opts = { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' };
+    return d.toLocaleDateString('en-US', opts);
+  }
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function renderCountdown(targetAt) {
+    const banner = document.getElementById('countdown-banner');
+    if (!banner) return;
+    if (!targetAt) {
+      banner.classList.remove('visible', 'expired');
+      return;
+    }
+    const parts = getCountdownParts(targetAt);
+    banner.classList.add('visible');
+    banner.classList.toggle('expired', parts.days + parts.hours + parts.minutes + parts.seconds === 0);
+    document.getElementById('nu-days').textContent = pad(parts.days);
+    document.getElementById('nu-hours').textContent = pad(parts.hours);
+    document.getElementById('nu-mins').textContent = pad(parts.minutes);
+    document.getElementById('nu-secs').textContent = pad(parts.seconds);
+    const dateEl = document.getElementById('countdown-date');
+    if (dateEl) dateEl.textContent = formatScheduledDate(targetAt);
+  }
+  function startCountdown(targetAt) {
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    renderCountdown(targetAt);
+    if (targetAt) {
+      countdownTimer = setInterval(() => renderCountdown(targetAt), 1000);
+    }
+  }
+  db.ref('launcher_meta/nextUpdate').on('value', snapshot => {
+    const data = snapshot.val();
+    const targetAt = Number(data?.targetAt);
+    startCountdown(Number.isFinite(targetAt) && targetAt > 0 ? targetAt : null);
   });
 </script>
 
